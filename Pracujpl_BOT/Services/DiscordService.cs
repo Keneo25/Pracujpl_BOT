@@ -19,6 +19,9 @@ public class DiscordService
     {
         try
         {
+            Console.WriteLine($"🔄 Wysyłanie powiadomienia: {job.Title} - {job.Company}");
+            Console.WriteLine($"🔗 Webhook URL: {_webhookUrl[..50]}...");
+
             var embed = new
             {
                 title = "🆕 Nowa oferta pracy!",
@@ -49,6 +52,7 @@ public class DiscordService
             var json = JsonConvert.SerializeObject(payload);
             var content = new StringContent(json, Encoding.UTF8, "application/json");
             
+            Console.WriteLine($"📤 Wysyłanie do Discord...");
             var response = await _httpClient.PostAsync(_webhookUrl, content);
             
             if (response.IsSuccessStatusCode)
@@ -57,12 +61,24 @@ public class DiscordService
             }
             else
             {
-                Console.WriteLine($"❌ Błąd wysyłania powiadomienia: {response.StatusCode}");
+                var responseContent = await response.Content.ReadAsStringAsync();
+                Console.WriteLine($"❌ Błąd wysyłania powiadomienia:");
+                Console.WriteLine($"   Status: {response.StatusCode}");
+                Console.WriteLine($"   Reason: {response.ReasonPhrase}");
+                Console.WriteLine($"   Response: {responseContent}");
+                Console.WriteLine($"   Webhook URL: {_webhookUrl}");
             }
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Błąd podczas wysyłania powiadomienia Discord: {ex.Message}");
+            Console.WriteLine($"❌ Błąd podczas wysyłania powiadomienia Discord:");
+            Console.WriteLine($"   Exception: {ex.GetType().Name}");
+            Console.WriteLine($"   Message: {ex.Message}");
+            Console.WriteLine($"   Webhook URL: {_webhookUrl}");
+            if (ex.InnerException != null)
+            {
+                Console.WriteLine($"   Inner Exception: {ex.InnerException.Message}");
+            }
         }
     }
 }

@@ -15,21 +15,25 @@ class Program
 
     static async Task Main()
     {
+        // Wczytaj zmienne z pliku .env
+        LoadEnvironmentVariables();
+        
         Console.WriteLine("Bot Discord Webhook - Monitor ofert pracy z pracuj.pl");
         Console.WriteLine("=======================================================");
         Console.WriteLine($"Monitorowane miasto: Olsztyn");
         Console.WriteLine($"Interwał sprawdzania: {CheckIntervalHours}h");
-        Console.WriteLine($"Webhook URL: {(string.IsNullOrEmpty(WebhookUrl) ? "BRAK" : "SKONFIGUROWANY")}");
+        Console.WriteLine($"Webhook URL: {(string.IsNullOrEmpty(Environment.GetEnvironmentVariable("WEBHOOK_URL")) ? "BRAK" : "SKONFIGUROWANY")}");
         Console.WriteLine("=======================================================\n");
         
-        if (string.IsNullOrEmpty(WebhookUrl))
+        var webhookUrl = Environment.GetEnvironmentVariable("WEBHOOK_URL");
+        if (string.IsNullOrEmpty(webhookUrl))
         {
             Console.WriteLine("BŁĄD: Nie ustawiono zmiennej środowiskowej WEBHOOK_URL!");
             Console.WriteLine("Ustaw zmienną WEBHOOK_URL z adresem Discord webhook.");
             Environment.Exit(1);
         }
         
-        ConfigureServices();
+        ConfigureServices(webhookUrl);
         Console.WriteLine("Rozpoczynam monitorowanie nowych ofert...\n");
 
         while (true)
@@ -48,13 +52,81 @@ class Program
         }
     }
 
-    private static void ConfigureServices()
+    private static void LoadEnvironmentVariables()
+    {
+        var envFilePath = Path.Combine(Directory.GetCurrentDirectory(), ".env");
+        var parentEnvFilePath = Path.Combine(Directory.GetCurrentDirectory(), "..", ".env");
+        
+        string? actualEnvPath = null;
+        
+        if (File.Exists(envFilePath))
+        {
+            actualEnvPath = envFilePath;
+        }
+        else if (File.Exists(parentEnvFilePath))
+        {
+            actualEnvPath = parentEnvFilePath;
+        }
+
+        if (actualEnvPath != null)
+        {
+            Console.WriteLine($"📁 Wczytywanie zmiennych z pliku: {actualEnvPath}");
+            
+            var lines = File.ReadAllLines(actualEnvPath);
+            foreach (var line in lines)
+            {
+                if (string.IsNullOrWhiteSpace(line) || line.StartsWith("#"))
+                    continue;
+
+                var parts = line.Split('=', 2);
+                if (parts.Length == 2)
+                {
+                    var key = parts[0].Trim();
+                    var value = parts[1].Trim();
+                    Environment.SetEnvironmentVariable(key, value);
+                    Console.WriteLine($"✅ Ustawiono {key}");
+                }
+            }
+        }
+        else
+        {
+            Console.WriteLine("ℹ️ Plik .env nie został znaleziony, używam zmiennych systemowych");
+        }
+    }
+
+    private static void ConfigureServices(string webhookUrl)
     {
         HttpClient.DefaultRequestHeaders.Add("User-Agent", 
             "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36");
         
+        // Walidacja webhook URL
+        if (!IsValidWebhookUrl(webhookUrl))
+        {
+            Console.WriteLine("❌ BŁĄD: Nieprawidłowy format webhook URL!");
+            Console.WriteLine($"   Otrzymany URL: {webhookUrl}");
+            Console.WriteLine("   Prawidłowy format: https://discord.com/api/webhooks/ID/TOKEN");
+            Environment.Exit(1);
+        }
+        
         _scrapingService = new JobScrapingService(PracujUrl, HttpClient);
-        _discordService = new DiscordService(WebhookUrl!, HttpClient);
+        _discordService = new DiscordService(webhookUrl, HttpClient);
+        
+        Console.WriteLine("✅ Serwisy skonfigurowane pomyślnie");
+    }
+
+    private static bool IsValidWebhookUrl(string url)
+    {
+        if (string.IsNullOrEmpty(url)) return false;
+        
+        try
+        {
+            var uri = new Uri(url);
+            return uri.Host == "discord.com" || uri.Host == "discordapp.com";
+        }
+        catch
+        {
+            return false;
+        }
     }
 
     private static async Task CheckForNewJobs()
