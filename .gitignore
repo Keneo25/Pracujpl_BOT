@@ -348,3 +348,8 @@ FodyWeavers.xsd
 
 ## Rider
 .idea/
+
+# Environment files
+.env
+.env.local
+.env.production

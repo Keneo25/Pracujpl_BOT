@@ -10,15 +10,11 @@ Bot monitorujący nowe oferty pracy na stronie pracuj.pl i wysyłający powiadom
 - ✅ Wykrywanie duplikatów (wysyła tylko nowe oferty)
 - 🐳 Gotowy do uruchomienia w Docker/Portainer
 
-## Wymagania
-
-- .NET 8.0 Runtime
-- Docker (opcjonalnie)
-- Discord Webhook URL
-
 ## Konfiguracja
 
 ### Zmienne środowiskowe
+
+Skopiuj plik `.env.example` do `.env` i ustaw:
 
 - `WEBHOOK_URL` - URL webhook Discord (wymagane)
 - `CHECK_INTERVAL_HOURS` - Interwał sprawdzania w godzinach (domyślnie: 5)
@@ -28,45 +24,70 @@ Bot monitorujący nowe oferty pracy na stronie pracuj.pl i wysyłający powiadom
 ### Lokalnie
 
 ```bash
+# Skopiuj przykładowy plik konfiguracji
+cp .env.example .env
+
+# Edytuj .env i ustaw swój WEBHOOK_URL
+# Następnie uruchom:
 dotnet run --project Pracujpl_BOT
 ```
 
-### Docker
+### Docker Compose
 
 ```bash
-# Zbuduj obraz
-docker build -t pracujpl-bot .
+# Skopiuj przykładowy plik konfiguracji
+cp .env.example .env
 
-# Uruchom kontener
-docker run -d \
-  --name pracujpl-bot \
-  -e WEBHOOK_URL="YOUR_DISCORD_WEBHOOK_URL" \
-  -e CHECK_INTERVAL_HOURS=5 \
-  --restart unless-stopped \
-  pracujpl-bot
+# Edytuj .env i ustaw swój WEBHOOK_URL
+# Następnie uruchom:
+docker-compose up -d
 ```
 
-### Portainer
+### Portainer - Instrukcja krok po kroku
 
-1. Dodaj to repozytorium jako Git repository w Portainer
-2. Stwórz nowy stack z następującym docker-compose.yml:
+#### 1. Przygotowanie repozytorium GitHub
 
-```yaml
-version: '3.8'
+1. Stwórz nowe repozytorium na GitHub
+2. Sklonuj to repozytorium lokalnie
+3. Skopiuj wszystkie pliki z bota do repozytorium
+4. **WAŻNE**: Nie dodawaj pliku `.env` do repozytorium (jest w .gitignore)
+5. Wyślij kod na GitHub:
+   ```bash
+   git add .
+   git commit -m "Initial commit - Pracuj.pl Discord Bot"
+   git push origin main
+   ```
 
-services:
-  pracujpl-bot:
-    build: .
-    environment:
-      - WEBHOOK_URL=${WEBHOOK_URL}
-      - CHECK_INTERVAL_HOURS=${CHECK_INTERVAL_HOURS:-5}
-    restart: unless-stopped
-    container_name: pracujpl-bot
-```
+#### 2. Konfiguracja w Portainer
 
-3. Ustaw zmienne środowiskowe w Portainer:
-   - `WEBHOOK_URL` - twój Discord webhook URL
-   - `CHECK_INTERVAL_HOURS` - opcjonalnie, domyślnie 5
+1. **Zaloguj się do Portainer**
+2. **Przejdź do "Stacks"**
+3. **Kliknij "Add stack"**
+4. **Ustaw nazwę**: `pracujpl-bot`
+5. **Wybierz "Repository"**
+6. **Ustaw Repository URL**: `https://github.com/TWOJ_USERNAME/NAZWA_REPO.git`
+7. **Ustaw Compose path**: `docker-compose.yml`
+
+#### 3. Ustawienie zmiennych środowiskowych
+
+W sekcji **"Environment variables"** dodaj:
+
+| Nazwa | Wartość |
+|-------|---------|
+| `WEBHOOK_URL` | `https://discord.com/api/webhooks/1411344314734477322/a_p1wg4e34GJ5ooDCjx8mw04nd7zQDi670uq336CSNYYiZavOuPAEnmcQ6ITQZsp4Cv3jak` |
+| `CHECK_INTERVAL_HOURS` | `5` |
+
+#### 4. Wdrożenie
+
+1. **Kliknij "Deploy the stack"**
+2. **Poczekaj na zbudowanie obrazu** (może potrwać kilka minut)
+3. **Sprawdź logi** w sekcji "Containers"
+
+#### 5. Monitorowanie
+
+- **Logi**: Containers → pracujpl-bot → Logs
+- **Restart**: Containers → pracujpl-bot → Restart
+- **Status**: Containers → pracujpl-bot
 
 ## Jak uzyskać Discord Webhook URL
 
@@ -76,34 +97,38 @@ services:
 4. Kliknij "Nowy webhook"
 5. Skopiuj URL webhook
 
-## Struktura projektu
-
-```
-├── Pracujpl_BOT/
-│   ├── Models/
-│   │   └── JobOffer.cs          # Model oferty pracy
-│   ├── Services/
-│   │   ├── JobScrapingService.cs # Scraping ofert z pracuj.pl
-│   │   └── DiscordService.cs     # Wysyłanie powiadomień Discord
-│   └── Program.cs               # Główna logika aplikacji
-├── Dockerfile                  # Konfiguracja Docker
-└── docker-compose.yml         # Konfiguracja dla Portainer
-```
-
 ## Troubleshooting
 
+### Problem z budowaniem w Portainer
+- Sprawdź czy repozytorium jest publiczne
+- Upewnij się, że ścieżka do docker-compose.yml jest poprawna
+
 ### Bot nie znajduje ofert
-- Sprawdź czy strona pracuj.pl nie zmieniła struktury HTML
-- Sprawdź logi aplikacji
+- Sprawdź logi kontejnera w Portainer
+- Zweryfikuj czy strona pracuj.pl nie zmieniła struktury
 
 ### Nie wysyła powiadomień na Discord
 - Zweryfikuj poprawność webhook URL
 - Sprawdź czy webhook ma odpowiednie uprawnienia
 
-### Błędy kompilacji
-- Upewnij się, że masz zainstalowany .NET 8.0 SDK
-- Uruchom `dotnet restore` w katalogu projektu
+### Aktualizacja bota
+1. Wyślij zmiany na GitHub
+2. W Portainer: Stacks → pracujpl-bot → "Update the stack"
+3. Kliknij "Pull and redeploy"
 
-## Licencja
+## Struktura projektu
 
-MIT License
+```
+├── Pracujpl_BOT/
+│   ├── Models/
+│   │   └── JobOffer.cs
+│   ├── Services/
+│   │   ├── JobScrapingService.cs
+│   │   └── DiscordService.cs
+│   └── Program.cs
+├── .env.example                # Przykład konfiguracji
+├── .env                       # Twoja konfiguracja (nie commituj!)
+├── docker-compose.yml         # Konfiguracja dla Portainer
+├── Dockerfile                 # Obraz Docker
+└── README.md
+```
