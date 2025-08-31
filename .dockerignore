@@ -1,0 +1,13 @@
+﻿**/bin
+**/obj
+**/.vs
+**/.idea
+**/node_modules
+**/packages
+Dockerfile
+.dockerignore
+.git
+.gitignore
+*.md
+LICENSE
+

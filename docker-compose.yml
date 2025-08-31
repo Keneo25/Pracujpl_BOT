@@ -1,0 +1,16 @@
+﻿version: '3.8'
+
+services:
+  pracujpl-bot:
+    build: .
+    environment:
+      - WEBHOOK_URL=${WEBHOOK_URL}
+      - CHECK_INTERVAL_HOURS=${CHECK_INTERVAL_HOURS:-5}
+    restart: unless-stopped
+    container_name: pracujpl-bot
+    networks:
+      - bot-network
+
+networks:
+  bot-network:
+    driver: bridge
