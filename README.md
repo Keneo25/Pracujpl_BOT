@@ -50,8 +50,7 @@ docker-compose up -d
 1. Stwórz nowe repozytorium na GitHub
 2. Sklonuj to repozytorium lokalnie
 3. Skopiuj wszystkie pliki z bota do repozytorium
-4. **WAŻNE**: Nie dodawaj pliku `.env` do repozytorium (jest w .gitignore)
-5. Wyślij kod na GitHub:
+4. Wyślij kod na GitHub:
    ```bash
    git add .
    git commit -m "Initial commit - Pracuj.pl Discord Bot"
@@ -74,8 +73,13 @@ W sekcji **"Environment variables"** dodaj:
 
 | Nazwa | Wartość |
 |-------|---------|
-| `WEBHOOK_URL` | `https://discord.com/api/webhooks/1411344314734477322/a_p1wg4e34GJ5ooDCjx8mw04nd7zQDi670uq336CSNYYiZavOuPAEnmcQ6ITQZsp4Cv3jak` |
+| `WEBHOOK_URL` | `https://discord.com/api/webhooks/1411344314734477322/a_p1wg4e34GJ5ooDCjx8mw04nd7zQDi670uq336CSNYYiZavOuPAEnmcQ6ITQZsp4Cv3` |
 | `CHECK_INTERVAL_HOURS` | `5` |
+
+**WAŻNE:**
+- Nie używaj cudzysłowów wokół wartości
+- WEBHOOK_URL musi być pełnym adresem Discord webhook
+- Sprawdź czy zmienne są poprawnie ustawione
 
 #### 4. Wdrożenie
 
@@ -83,11 +87,23 @@ W sekcji **"Environment variables"** dodaj:
 2. **Poczekaj na zbudowanie obrazu** (może potrwać kilka minut)
 3. **Sprawdź logi** w sekcji "Containers"
 
-#### 5. Monitorowanie
+#### 5. Sprawdzenie czy działa
 
-- **Logi**: Containers → pracujpl-bot → Logs
-- **Restart**: Containers → pracujpl-bot → Restart
-- **Status**: Containers → pracujpl-bot
+W logach powinieneś zobaczyć:
+```
+Bot Discord Webhook - Monitor ofert pracy z pracuj.pl
+=======================================================
+Monitorowane miasto: Olsztyn
+Interwał sprawdzania: 5h
+Webhook URL: SKONFIGUROWANY
+=======================================================
+
+Rozpoczynam monitorowanie nowych ofert...
+```
+
+**Jeśli widzisz "WEBHOOK_URL: BRAK":**
+- Sprawdź czy zmienne środowiskowe są poprawnie ustawione w Portainer
+- Restart stack i sprawdź ponownie
 
 ## Jak uzyskać Discord Webhook URL
 
@@ -129,6 +145,7 @@ W sekcji **"Environment variables"** dodaj:
 ├── .env.example                # Przykład konfiguracji
 ├── .env                       # Twoja konfiguracja (nie commituj!)
 ├── docker-compose.yml         # Konfiguracja dla Portainer
+├── docker-compose.portainer.yml # Alternatywna konfiguracja dla Portainer
 ├── Dockerfile                 # Obraz Docker
 └── README.md
 ```

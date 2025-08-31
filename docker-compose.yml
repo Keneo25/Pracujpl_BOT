@@ -3,8 +3,9 @@
 services:
   pracujpl-bot:
     build: .
-    env_file:
-      - .env
+    environment:
+      - WEBHOOK_URL
+      - CHECK_INTERVAL_HOURS
     restart: unless-stopped
     container_name: pracujpl-bot
     networks:
