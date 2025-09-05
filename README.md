@@ -73,7 +73,7 @@ W sekcji **"Environment variables"** dodaj:
 
 | Nazwa | Wartość |
 |-------|---------|
-| `WEBHOOK_URL` | `https://discord.com/api/webhooks/1411344314734477322/a_p1wg4e34GJ5ooDCjx8mw04nd7zQDi670uq336CSNYYiZavOuPAEnmcQ6ITQZsp4Cv3` |
+| `WEBHOOK_URL` | `url` |
 | `CHECK_INTERVAL_HOURS` | `5` |
 
 **WAŻNE:**
